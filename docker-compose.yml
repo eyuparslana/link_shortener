@@ -1,0 +1,31 @@
+version: '3'
+
+services:
+  web:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+      - task
+    links:
+      - redis:redis
+      - db:db
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+  db:
+    image: postgres
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_PASSWORD=postgres
+  task:
+    image: celery
+    depends_on:
+      - redis
+    command: celery -A link_shortener beat -l INFO
